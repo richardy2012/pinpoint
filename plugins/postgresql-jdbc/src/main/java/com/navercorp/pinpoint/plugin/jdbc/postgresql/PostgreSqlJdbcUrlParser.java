@@ -16,67 +16,63 @@
 
 package com.navercorp.pinpoint.plugin.jdbc.postgresql;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.navercorp.pinpoint.bootstrap.context.DatabaseInfo;
+import com.navercorp.pinpoint.bootstrap.logging.PLogger;
+import com.navercorp.pinpoint.bootstrap.logging.PLoggerFactory;
+import com.navercorp.pinpoint.bootstrap.plugin.jdbc.DefaultDatabaseInfo;
+import com.navercorp.pinpoint.bootstrap.plugin.jdbc.JdbcUrlParserV2;
+import com.navercorp.pinpoint.bootstrap.plugin.jdbc.StringMaker;
+import com.navercorp.pinpoint.bootstrap.plugin.jdbc.UnKnownDatabaseInfo;
+import com.navercorp.pinpoint.common.trace.ServiceType;
+import com.navercorp.pinpoint.common.util.StringUtils;
+
 import java.util.List;
 
-import com.navercorp.pinpoint.bootstrap.context.DatabaseInfo;
-import com.navercorp.pinpoint.bootstrap.plugin.jdbc.DefaultDatabaseInfo;
-import com.navercorp.pinpoint.bootstrap.plugin.jdbc.JdbcUrlParser;
-import com.navercorp.pinpoint.bootstrap.plugin.jdbc.StringMaker;
-
 /**
+ * https://jdbc.postgresql.org/documentation/head/connect.html
  * @author Brad Hong
  */
-public class PostgreSqlJdbcUrlParser extends JdbcUrlParser {
+public class PostgreSqlJdbcUrlParser implements JdbcUrlParserV2 {
 
-    // jdbc:postgresql:loadbalance://10.22.33.44:3306,10.22.33.55:3306/PostgreSQL?characterEncoding=UTF-8
-    private static final String JDBC_POSTGRESQL_LOADBALANCE = "jdbc:postgresql:loadbalance:";
+    private static final String URL_PREFIX = "jdbc:postgresql:";
+
+    private final PLogger logger = PLoggerFactory.getLogger(this.getClass());
 
     @Override
-    public DatabaseInfo doParse(String url) {
-        if (isLoadbalanceUrl(url)) {
-            return parseLoadbalancedUrl(url);
+    public DatabaseInfo parse(String jdbcUrl) {
+        if (jdbcUrl == null) {
+            logger.info("jdbcUrl must not be null");
+            return UnKnownDatabaseInfo.INSTANCE;
         }
-        return parseNormal(url);
+        if (!jdbcUrl.startsWith(URL_PREFIX)) {
+            logger.info("jdbcUrl has invalid prefix.(url:{}, prefix:{})", jdbcUrl, URL_PREFIX);
+            return UnKnownDatabaseInfo.INSTANCE;
+        }
+
+        DatabaseInfo result = null;
+        try {
+            result = parse0(jdbcUrl);
+        } catch (Exception e) {
+            logger.info("PostgreJdbcUrl parse error. url: {}, Caused: {}", jdbcUrl, e.getMessage(), e);
+            result = UnKnownDatabaseInfo.createUnknownDataBase(PostgreSqlConstants.POSTGRESQL, PostgreSqlConstants.POSTGRESQL_EXECUTE_QUERY, jdbcUrl);
+        }
+        return result;
     }
 
-    private DatabaseInfo parseLoadbalancedUrl(String url) {
-        // jdbc:postgresql://1.2.3.4:5678/test_db
-        StringMaker maker = new StringMaker(url);
-        maker.after("jdbc:postgresql:");
-        // 1.2.3.4:5678 In case of replication driver could have multiple values
-        // We have to consider mm db too.
-        String host = maker.after("//").before('/').value();
-
-        // Decided not to cache regex. This is not invoked often so don't waste memory.
-        String[] parsedHost = host.split(",");
-        List<String> hostList = Arrays.asList(parsedHost);
-
-
-        String databaseId = maker.next().afterLast('/').before('?').value();
-        String normalizedUrl = maker.clear().before('?').value();
-        
-        return new DefaultDatabaseInfo(PostgreSqlConstants.POSTGRESQL, PostgreSqlConstants.POSTGRESQL_EXECUTE_QUERY, url, normalizedUrl, hostList, databaseId);
-    }
-
-    private boolean isLoadbalanceUrl(String url) {
-        return url.regionMatches(true, 0, JDBC_POSTGRESQL_LOADBALANCE, 0, JDBC_POSTGRESQL_LOADBALANCE.length());
-    }
-
-    private DatabaseInfo parseNormal(String url) {
+    private DatabaseInfo parse0(String url) {
      // jdbc:postgresql://1.2.3.4:5678/test_db
         StringMaker maker = new StringMaker(url);
-        maker.after("jdbc:postgresql:");
-        // 1.2.3.4:5678 In case of replication driver could have multiple values
-        // We have to consider mm db too.
-        String host = maker.after("//").before('/').value();
-        List<String> hostList = new ArrayList<String>(1);
-        hostList.add(host);
-        // String port = maker.next().after(':').before('/').value();
-
+        maker.after(URL_PREFIX);
+        String hosts = maker.after("//").before('/').value();
+        List<String> hostList = StringUtils.tokenizeToStringList(hosts, ",");
         String databaseId = maker.next().afterLast('/').before('?').value();
         String normalizedUrl = maker.clear().before('?').value();
         return new DefaultDatabaseInfo(PostgreSqlConstants.POSTGRESQL, PostgreSqlConstants.POSTGRESQL_EXECUTE_QUERY, url, normalizedUrl, hostList, databaseId);
     }
+
+    @Override
+    public ServiceType getServiceType() {
+        return PostgreSqlConstants.POSTGRESQL;
+    }
+
 }

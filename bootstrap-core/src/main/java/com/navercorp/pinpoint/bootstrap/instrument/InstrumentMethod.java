@@ -17,6 +17,7 @@
 package com.navercorp.pinpoint.bootstrap.instrument;
 
 import com.navercorp.pinpoint.bootstrap.context.MethodDescriptor;
+import com.navercorp.pinpoint.bootstrap.interceptor.Interceptor;
 import com.navercorp.pinpoint.bootstrap.interceptor.scope.ExecutionPolicy;
 import com.navercorp.pinpoint.bootstrap.interceptor.scope.InterceptorScope;
 
@@ -36,29 +37,32 @@ public interface InstrumentMethod {
     
     MethodDescriptor getDescriptor();
 
-    int addInterceptor(String interceptorClassName) throws InstrumentException;
+    //-------------------- Plugin V2 Api  ----------------------------------
+    int addInterceptor(Class<? extends Interceptor> interceptorClass) throws InstrumentException;
 
-    int addInterceptor(String interceptorClassName, Object[] constructorArgs) throws InstrumentException;
+    int addInterceptor(Class<? extends Interceptor> interceptorClass, Object[] constructorArgs) throws InstrumentException;
 
+    int addScopedInterceptor(Class<? extends Interceptor> interceptorClass, String scopeName) throws InstrumentException;
 
-    int addScopedInterceptor(String interceptorClassName, String scopeName) throws InstrumentException;
-
-    int addScopedInterceptor(String interceptorClassName, InterceptorScope scope) throws InstrumentException;
-
-
-    int addScopedInterceptor(String interceptorClassName, String scopeName, ExecutionPolicy executionPolicy) throws InstrumentException;
-
-    int addScopedInterceptor(String interceptorClassName, InterceptorScope scope, ExecutionPolicy executionPolicy) throws InstrumentException;
+    int addScopedInterceptor(Class<? extends Interceptor> interceptorClass, InterceptorScope interceptorScope) throws InstrumentException;
 
 
-    int addScopedInterceptor(String interceptorClassName, Object[] constructorArgs, String scopeName) throws InstrumentException;
+    int addScopedInterceptor(Class<? extends Interceptor> interceptorClass, String scopeName, ExecutionPolicy executionPolicy) throws InstrumentException;
 
-    int addScopedInterceptor(String interceptorClassName, Object[] constructorArgs, InterceptorScope scope) throws InstrumentException;
+    int addScopedInterceptor(Class<? extends Interceptor> interceptorClass, InterceptorScope interceptorScope, ExecutionPolicy executionPolicy) throws InstrumentException;
 
 
-    int addScopedInterceptor(String interceptorClassName, Object[] constructorArgs, String scopeName, ExecutionPolicy executionPolicy) throws InstrumentException;
+    int addScopedInterceptor(Class<? extends Interceptor> interceptorClass, Object[] constructorArgs, String scopeName) throws InstrumentException;
 
-    int addScopedInterceptor(String interceptorClassName, Object[] constructorArgs, InterceptorScope scope, ExecutionPolicy executionPolicy) throws InstrumentException;
-    
+    int addScopedInterceptor(Class<? extends Interceptor> interceptorClass, Object[] constructorArgs, InterceptorScope interceptorScope) throws InstrumentException;
+
+
+    int addScopedInterceptor(Class<? extends Interceptor> interceptorClass, Object[] constructorArgs, String scopeName, ExecutionPolicy executionPolicy) throws InstrumentException;
+
+    int addScopedInterceptor(Class<? extends Interceptor> interceptorClass, Object[] constructorArgs, InterceptorScope interceptorScope, ExecutionPolicy executionPolicy) throws InstrumentException;
+
+
     void addInterceptor(int interceptorId) throws InstrumentException;
+
+    Class<? extends Interceptor> loadInterceptorClass(String interceptorClassName) throws InstrumentException;
 }

@@ -16,9 +16,9 @@
 package com.navercorp.pinpoint.web.dao.mysql;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.mybatis.spring.SqlSessionTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
@@ -33,10 +33,12 @@ public class MysqlUserDao implements UserDao {
 
     private static final String NAMESPACE = UserDao.class.getPackage().getName() + "." + UserDao.class.getSimpleName() + ".";
 
-    @Autowired
-    @Qualifier("sqlSessionTemplate")
-    private SqlSessionTemplate sqlSessionTemplate;
-    
+    private final SqlSessionTemplate sqlSessionTemplate;
+
+    public MysqlUserDao(@Qualifier("sqlSessionTemplate") SqlSessionTemplate sqlSessionTemplate) {
+        this.sqlSessionTemplate = Objects.requireNonNull(sqlSessionTemplate, "sqlSessionTemplate");
+    }
+
     @Override
     public void insertUser(User user) {
         sqlSessionTemplate.insert(NAMESPACE + "insertUser", user);
@@ -48,8 +50,8 @@ public class MysqlUserDao implements UserDao {
     }
 
     @Override
-    public void deleteUser(User user) {
-        sqlSessionTemplate.delete(NAMESPACE + "deleteUser", user);
+    public void deleteUser(String userId) {
+        sqlSessionTemplate.delete(NAMESPACE + "deleteUser", userId);
         
     }
 
@@ -61,6 +63,11 @@ public class MysqlUserDao implements UserDao {
     @Override
     public void updateUser(User user) {
         sqlSessionTemplate.update(NAMESPACE + "updateUser", user);
+    }
+
+    @Override
+    public boolean isExistUserId(String userId) {
+        return sqlSessionTemplate.selectOne(NAMESPACE + "isExistUserId", userId);
     }
 
     @Override

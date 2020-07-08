@@ -82,7 +82,7 @@ public class UserGroupControllerTest {
     
     private MockMvc mockMvc;
     
-    private User user = new User(TEST_USER_GROUP_MEMBER_ID, "userName", "pinpoint_team", "0101234", "pinpoint_team@navercorp.com");
+    private final User user = new User(TEST_USER_GROUP_MEMBER_ID, "userName", "pinpoint_team", 82, "0101234", "pinpoint_team@navercorp.com");
     @Before
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
@@ -102,7 +102,7 @@ public class UserGroupControllerTest {
     
     @After
     public void after(){
-        userDao.deleteUser(user);
+        userDao.deleteUser(user.getUserId());
         
         //for selectUserGroupByUserId test
         userGroupDao.deleteMember(new UserGroupMember(TEST_USER_GROUP_ID2, TEST_USER_GROUP_MEMBER_ID2));
@@ -225,8 +225,7 @@ public class UserGroupControllerTest {
                             .andExpect(jsonPath("$[0]", hasKey("userGroupId")))
                             .andExpect(jsonPath("$[0]", hasKey("memberId")))
                             .andReturn();
-            System.out.println(andReturn.getResponse().getContentAsString());
-            
+
             
             this.mockMvc.perform(delete("/userGroup/member.pinpoint").contentType(MediaType.APPLICATION_JSON).content("{\"userGroupId\" : \"" + TEST_USER_GROUP_ID + "\", \"memberId\" : \"" + TEST_USER_GROUP_MEMBER_ID + "\"}"))
                             .andExpect(status().isOk())

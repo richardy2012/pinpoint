@@ -16,26 +16,59 @@
 
 package com.navercorp.pinpoint.web.config;
 
+import com.navercorp.pinpoint.common.server.config.AnnotationVisitor;
+import com.navercorp.pinpoint.common.server.config.LoggingEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
 
 /**
  * @author HyunGil Jeong
  */
-@Component
+@Configuration
 public class ConfigProperties {
 
-    @Value("#{pinpointWebProps['config.sendUsage'] ?: true}")
+    private final Logger logger = LoggerFactory.getLogger(ConfigProperties.class);
+
+    @Value("${config.sendUsage:true}")
     private boolean sendUsage;
     
-    @Value("#{pinpointWebProps['config.editUserInfo'] ?: true}")
+    @Value("${config.editUserInfo:true}")
     private boolean editUserInfo;
 
-    @Value("#{pinpointWebProps['config.show.activeThread'] ?: false}")
+    @Value("${config.show.activeThread:false}")
     private boolean showActiveThread;
-    
-    @Value("#{pinpointWebProps['config.openSource'] ?: true}")
+
+    @Value("${config.show.activeThreadDump:false}")
+    private boolean showActiveThreadDump;
+
+    @Value("${config.enable.activeThreadDump:false}")
+    private boolean enableActiveThreadDump;
+
+    @Value("${config.enable.serverMapRealTime:false}")
+    private boolean enableServerMapRealTime;
+
+    @Value("${config.openSource:true}")
     private boolean openSource;
+
+    @Value("${security.guide.url:#{null}}")
+    private String securityGuideUrl;
+
+    @Value("${config.show.applicationStat:false}")
+    private boolean showApplicationStat;
+
+    @Value("${config.show.stackTraceOnError:true}")
+    private boolean showStackTraceOnError;
+
+    @Value("${websocket.allowedOrigins:#{null}}")
+    private String webSocketAllowedOrigins;
+
+    public String getSecurityGuideUrl() {
+        return securityGuideUrl;
+    }
 
     public boolean getEditUserInfo() {
         return editUserInfo;
@@ -48,20 +81,58 @@ public class ConfigProperties {
     public boolean isShowActiveThread() {
         return this.showActiveThread;
     }
-    
+
+    public boolean isShowActiveThreadDump() {
+        return showActiveThreadDump;
+    }
+
+    public boolean isEnableActiveThreadDump() {
+        return enableActiveThreadDump;
+    }
+
+    public boolean isEnableServerMapRealTime() {
+        return enableServerMapRealTime;
+    }
+
     public boolean isOpenSource() {
         return this.openSource;
     }
 
+    public boolean isShowApplicationStat() {
+        return this.showApplicationStat;
+    }
+
+    public boolean isShowStackTraceOnError() {
+        return showStackTraceOnError;
+    }
+
+    public String getWebSocketAllowedOrigins() {
+        return webSocketAllowedOrigins;
+    }
+
+    @PostConstruct
+    public void log() {
+        logger.info("{}", this);
+        AnnotationVisitor annotationVisitor = new AnnotationVisitor(Value.class);
+        annotationVisitor.visit(this, new LoggingEvent(this.logger));
+    }
+
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("WebProperties{");
+        final StringBuilder sb = new StringBuilder("ConfigProperties{");
         sb.append("sendUsage=").append(sendUsage);
-        sb.append(", showActiveThread=").append(showActiveThread);
         sb.append(", editUserInfo=").append(editUserInfo);
-        sb.append("}");
+        sb.append(", showActiveThread=").append(showActiveThread);
+        sb.append(", showActiveThreadDump=").append(showActiveThreadDump);
+        sb.append(", enableActiveThreadDump=").append(enableActiveThreadDump);
+        sb.append(", enableServerMapRealTime=").append(enableServerMapRealTime);
+        sb.append(", openSource=").append(openSource);
+        sb.append(", securityGuideUrl='").append(securityGuideUrl).append('\'');
+        sb.append(", showApplicationStat=").append(showApplicationStat);
+        sb.append(", showStackTraceOnError=").append(showStackTraceOnError);
+        sb.append(", webSocketAllowedOrigins=").append(webSocketAllowedOrigins);
+        sb.append('}');
         return sb.toString();
     }
-    
-    
+
 }

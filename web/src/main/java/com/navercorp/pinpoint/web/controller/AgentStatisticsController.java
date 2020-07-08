@@ -1,7 +1,23 @@
+/*
+ * Copyright 2016 NAVER Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.navercorp.pinpoint.web.controller;
 
-import com.navercorp.pinpoint.common.util.DateUtils;
 import com.navercorp.pinpoint.web.service.AgentStatisticsService;
+import com.navercorp.pinpoint.web.util.DateTimeUtils;
 import com.navercorp.pinpoint.web.vo.AgentCountStatistics;
 import com.navercorp.pinpoint.web.vo.Range;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,7 +40,7 @@ import java.util.Map;
 public class AgentStatisticsController {
 
     @Autowired
-    AgentStatisticsService agentStatisticsService;
+    private AgentStatisticsService agentStatisticsService;
 
     @RequestMapping(value = "/insertAgentCount", method = RequestMethod.GET, params = {"agentCount"})
     @ResponseBody
@@ -43,7 +58,7 @@ public class AgentStatisticsController {
             return result;
         }
 
-        AgentCountStatistics agentCountStatistics = new AgentCountStatistics(agentCount, DateUtils.timestampToMidNight(timestamp));
+        AgentCountStatistics agentCountStatistics = new AgentCountStatistics(agentCount, DateTimeUtils.timestampToStartOfDay(timestamp));
         boolean success = agentStatisticsService.insertAgentCount(agentCountStatistics);
 
         if (success) {
@@ -73,15 +88,12 @@ public class AgentStatisticsController {
     @RequestMapping(value = "/selectAgentCount", method = RequestMethod.GET, params = {"from", "to"})
     @ResponseBody
     public List<AgentCountStatistics> selectAgentCount(@RequestParam("from") long from, @RequestParam("to") long to) {
-        Range range = new Range(DateUtils.timestampToMidNight(from), DateUtils.timestampToMidNight(to), true);
+        Range range = Range.newRange(DateTimeUtils.timestampToStartOfDay(from), DateTimeUtils.timestampToStartOfDay(to));
         List<AgentCountStatistics> agentCountStatisticsList = agentStatisticsService.selectAgentCount(range);
 
-        Collections.sort(agentCountStatisticsList, new Comparator<AgentCountStatistics>() {
+        agentCountStatisticsList.sort(new Comparator<AgentCountStatistics>() {
             @Override
             public int compare(AgentCountStatistics o1, AgentCountStatistics o2) {
-                o1.getTimestamp();
-                o2.getTimestamp();
-
                 if (o1.getTimestamp() > o2.getTimestamp()) {
                     return -1;
                 } else {
@@ -92,5 +104,6 @@ public class AgentStatisticsController {
 
         return agentCountStatisticsList;
     }
+
 
 }

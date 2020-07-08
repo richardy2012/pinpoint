@@ -16,15 +16,17 @@
 
 package com.navercorp.pinpoint.web.alarm.checker;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.navercorp.pinpoint.common.server.bo.stat.CpuLoadBo;
+import com.navercorp.pinpoint.common.server.bo.stat.JvmGcBo;
 import org.junit.BeforeClass;
 
-import com.navercorp.pinpoint.web.dao.AgentStatDao;
+import com.navercorp.pinpoint.web.dao.stat.AgentStatDao;
 import com.navercorp.pinpoint.web.dao.ApplicationIndexDao;
-import com.navercorp.pinpoint.web.vo.AgentStat;
 import com.navercorp.pinpoint.web.vo.Application;
 import com.navercorp.pinpoint.web.vo.Range;
 
@@ -36,28 +38,25 @@ public class GcCountCheckerTest {
 
     private static ApplicationIndexDao applicationIndexDao;
 
-    private static AgentStatDao agentStatDao;
+    private static AgentStatDao<JvmGcBo> jvmGcDao;
+
+    private static AgentStatDao<CpuLoadBo> cpuLoadDao;
 
     @BeforeClass
     public static void before() {
-        agentStatDao = new AgentStatDao() {
+        jvmGcDao = new AgentStatDao<JvmGcBo>() {
 
             @Override
-            public List<AgentStat> getAgentStatList(String agentId, Range range) {
-                List<AgentStat> agentStatList = new LinkedList<AgentStat>();
+            public List<JvmGcBo> getAgentStatList(String agentId, Range range) {
+                List<JvmGcBo> jvmGcs = new LinkedList<>();
                 
                 for (int i = 36; i > 0; i--) {
-                    AgentStat stat = new AgentStat("AGENT_NAME", 1L);
-                    stat.setGcOldCount(i);
-                    agentStatList.add(stat);
+                    JvmGcBo jvmGc = new JvmGcBo();
+                    jvmGc.setGcOldCount(i);
+                    jvmGcs.add(jvmGc);
                 }
                 
-                return agentStatList;
-            }
-            
-            @Override
-            public List<AgentStat> getAggregatedAgentStatList(String agentId, Range range) {
-                return getAgentStatList(agentId, range);
+                return jvmGcs;
             }
 
             @Override
@@ -66,10 +65,28 @@ public class GcCountCheckerTest {
             }
         };
 
+        cpuLoadDao = new AgentStatDao<CpuLoadBo>() {
+
+            @Override
+            public List<CpuLoadBo> getAgentStatList(String agentId, Range range) {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public boolean agentStatExists(String agentId, Range range) {
+                return false;
+            }
+        };
+
         applicationIndexDao = new ApplicationIndexDao() {
 
             @Override
             public List<Application> selectAllApplicationNames() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<Application> selectApplicationName(String applicationName) {
                 throw new UnsupportedOperationException();
             }
 
@@ -107,7 +124,7 @@ public class GcCountCheckerTest {
 //    public void checkTest1() {
 //        Rule rule = new Rule(SERVICE_NAME, SERVICE_TYPE, CheckerCategory.GC_COUNT.getName(), 35, "testGroup", false, false, "");
 //        Application application = new Application(SERVICE_NAME, ServiceType.STAND_ALONE);
-//        AgentStatDataCollector collector = new AgentStatDataCollector(DataCollectorCategory.AGENT_STAT, application, agentStatDao, applicationIndexDao, System.currentTimeMillis(), DataCollectorFactory.SLOT_INTERVAL_FIVE_MIN);
+//        AgentStatDataCollector collector = new AgentStatDataCollector(DataCollectorCategory.AGENT_STAT, application, jvmGcDao, cpuLoadDao, applicationIndexDao, System.currentTimeMillis(), DataCollectorFactory.SLOT_INTERVAL_FIVE_MIN);
 //        AgentChecker checker = new GcCountChecker(collector, rule);
 //        
 //        checker.check();
@@ -118,7 +135,7 @@ public class GcCountCheckerTest {
 //    public void checkTest2() {
 //        Rule rule = new Rule(SERVICE_NAME, SERVICE_TYPE, CheckerCategory.GC_COUNT.getName(), 36, "testGroup", false, false, "");
 //        Application application = new Application(SERVICE_NAME, ServiceType.STAND_ALONE);
-//        AgentStatDataCollector collector = new AgentStatDataCollector(DataCollectorCategory.AGENT_STAT, application, agentStatDao, applicationIndexDao, System.currentTimeMillis(), DataCollectorFactory.SLOT_INTERVAL_FIVE_MIN);
+//        AgentStatDataCollector collector = new AgentStatDataCollector(DataCollectorCategory.AGENT_STAT, application, jvmGcDao, cpuLoadDao, applicationIndexDao, System.currentTimeMillis(), DataCollectorFactory.SLOT_INTERVAL_FIVE_MIN);
 //        AgentChecker checker = new GcCountChecker(collector, rule);
 //        
 //        checker.check();

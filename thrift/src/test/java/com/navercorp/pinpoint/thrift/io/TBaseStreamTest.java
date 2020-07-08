@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class TBaseStreamTest {
         assertTrue(stream.size() > 0);
 
         stream.clear();
-        assertTrue(stream.size() == 0);
+        assertTrue(stream.isEmpty());
     }
 
     @Test

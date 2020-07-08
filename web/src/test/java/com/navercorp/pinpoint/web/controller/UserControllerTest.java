@@ -38,7 +38,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.navercorp.pinpoint.web.dao.UserDao;
-import com.navercorp.pinpoint.web.vo.User;
 
 /**
  * @author minwoo.jung
@@ -70,9 +69,7 @@ public class UserControllerTest {
     @Before
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
-        User user = new User();
-        user.setUserId(USER_ID);
-        userDao.deleteUser(user);
+        userDao.deleteUser(USER_ID);
     }
     
     @Test

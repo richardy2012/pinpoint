@@ -18,12 +18,12 @@ package com.navercorp.pinpoint.web.mapper;
 
 import com.navercorp.pinpoint.common.buffer.Buffer;
 import com.navercorp.pinpoint.common.buffer.FixedBuffer;
-import com.navercorp.pinpoint.common.hbase.HBaseTables;
+import com.navercorp.pinpoint.common.hbase.HbaseColumnFamily;
 import com.navercorp.pinpoint.common.hbase.RowMapper;
-import com.navercorp.pinpoint.common.service.ServiceTypeRegistryService;
 import com.navercorp.pinpoint.common.trace.ServiceType;
 import com.navercorp.pinpoint.common.util.BytesUtils;
 import com.navercorp.pinpoint.common.util.TimeUtils;
+import com.navercorp.pinpoint.loader.service.ServiceTypeRegistryService;
 import com.navercorp.pinpoint.web.vo.ResponseTime;
 
 import com.sematext.hbase.wd.RowKeyDistributorByHashPrefix;
@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 
 /**
  * @author emeroad
@@ -64,12 +63,13 @@ public class ResponseTimeMapper implements RowMapper<ResponseTime> {
 
         ResponseTime responseTime = createResponseTime(rowKey);
         for (Cell cell : result.rawCells()) {
-            if (CellUtil.matchingFamily(cell, HBaseTables.MAP_STATISTICS_SELF_VER2_CF_COUNTER)) {
+            if (CellUtil.matchingFamily(cell, HbaseColumnFamily.MAP_STATISTICS_SELF_VER2_COUNTER.getName())) {
                 recordColumn(responseTime, cell);
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("unknown column family:{}", Arrays.toString(CellUtil.cloneFamily(cell)));
+                String columnFamily = Bytes.toString(cell.getFamilyArray(), cell.getFamilyOffset(), cell.getFamilyLength());
+                logger.debug("unknown column family:{}", columnFamily);
             }
         }
         return responseTime;

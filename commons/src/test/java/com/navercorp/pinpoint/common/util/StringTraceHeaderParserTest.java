@@ -33,12 +33,12 @@ public class StringTraceHeaderParserTest {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private StringTraceHeaderParser parser= new StringTraceHeaderParser();
+    private final StringTraceHeaderParser parser= new StringTraceHeaderParser();
 
     @Test
     public void getIdSize() {
         String test = "3ccb94f3-a8fe-4464-bfbd-d35490afab3d";
-        logger.info("idSize={}", test.length());
+        logger.debug("idSize={}", test.length());
     }
 
 
@@ -60,6 +60,6 @@ public class StringTraceHeaderParserTest {
         Assert.assertEquals("pSpanId", String.valueOf(pSpanId), header.getParentSpanId());
         Assert.assertEquals("sampling", String.valueOf(sampling), header.getSampling());
         Assert.assertEquals("flag", String.valueOf(flag), header.getFlag());
-        logger.info("{}, parse:" + header);
+        logger.debug("{}, parse:" + header);
     }
 }

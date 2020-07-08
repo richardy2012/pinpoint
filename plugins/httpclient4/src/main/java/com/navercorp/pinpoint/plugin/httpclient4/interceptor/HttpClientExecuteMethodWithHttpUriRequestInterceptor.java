@@ -19,14 +19,13 @@ package com.navercorp.pinpoint.plugin.httpclient4.interceptor;
 import java.net.URI;
 
 import com.navercorp.pinpoint.bootstrap.interceptor.scope.InterceptorScope;
+import com.navercorp.pinpoint.bootstrap.util.NumberUtils;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.HttpUriRequest;
 
 import com.navercorp.pinpoint.bootstrap.context.MethodDescriptor;
 import com.navercorp.pinpoint.bootstrap.context.TraceContext;
-import com.navercorp.pinpoint.bootstrap.interceptor.annotation.Scope;
 import com.navercorp.pinpoint.bootstrap.pair.NameIntValuePair;
-import com.navercorp.pinpoint.plugin.httpclient4.HttpClient4Constants;
 
 /**
  * InstrumentMethod interceptor
@@ -41,7 +40,6 @@ import com.navercorp.pinpoint.plugin.httpclient4.HttpClient4Constants;
  * @author minwoo.jung
  * @author jaehong.kim
  */
-@Scope(HttpClient4Constants.HTTP_CLIENT4_SCOPE)
 public class HttpClientExecuteMethodWithHttpUriRequestInterceptor extends AbstractHttpClientExecuteMethodInterceptor {
 
     private static final int HTTP_URI_REQUEST_INDEX = 0;
@@ -115,11 +113,8 @@ public class HttpClientExecuteMethodWithHttpUriRequestInterceptor extends Abstra
                                 }
                             }
                             if (len > 0) {
-                                try {
-                                    port = Integer.parseInt(host.substring(pos, pos + len));
-                                } catch (NumberFormatException ignore) {
-                                    // skip
-                                }
+                                String hostStr = host.substring(pos, pos + len);
+                                port = NumberUtils.parseInteger(hostStr, port);
                             }
                             host = host.substring(0, colon);
                         }

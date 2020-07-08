@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 NAVER Corp.
+ * Copyright 2019 NAVER Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,8 +17,11 @@
 package com.navercorp.pinpoint.web.vo.scatter;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.navercorp.pinpoint.common.profiler.util.TransactionId;
+import com.navercorp.pinpoint.common.profiler.util.TransactionIdUtils;
 import com.navercorp.pinpoint.web.view.DotSerializer;
-import com.navercorp.pinpoint.web.vo.TransactionId;
+
+import java.util.Objects;
 
 @JsonSerialize(using = DotSerializer.class)
 public class Dot {
@@ -40,19 +43,13 @@ public class Dot {
      * @param elapsedTime
      * @param exceptionCode 0 : success, 1 : error
      */
-
     public Dot(TransactionId transactionId, long acceptedTime, int elapsedTime, int exceptionCode, String agentId) {
-        if (transactionId == null) {
-            throw new NullPointerException("transactionId must not be null");
-        }
-        if (agentId == null) {
-            throw new NullPointerException("agentId must not be null");
-        }
-        this.transactionId = transactionId;
+        this.transactionId = Objects.requireNonNull(transactionId, "transactionId");
+        this.agentId = Objects.requireNonNull(agentId, "agentId");
+
         this.acceptedTime = acceptedTime;
         this.elapsedTime = elapsedTime;
         this.exceptionCode = exceptionCode;
-        this.agentId = agentId;
     }
 
     public TransactionId getTransactionId() {
@@ -60,7 +57,7 @@ public class Dot {
     }
 
     public String getTransactionIdAsString() {
-        return transactionId.getFormatString();
+        return TransactionIdUtils.formatString(transactionId);
     }
 
     public int getExceptionCode() {
@@ -105,4 +102,5 @@ public class Dot {
         sb.append('}');
         return sb.toString();
     }
+
 }

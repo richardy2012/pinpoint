@@ -18,8 +18,10 @@ package com.navercorp.pinpoint.common.server.bo;
 
 import com.navercorp.pinpoint.common.PinpointConstants;
 import com.navercorp.pinpoint.common.util.BytesUtils;
-import com.navercorp.pinpoint.common.util.RowKeyUtils;
+import com.navercorp.pinpoint.common.server.util.RowKeyUtils;
 import com.navercorp.pinpoint.common.util.TimeUtils;
+
+import java.util.Objects;
 
 /**
  * @author emeroad
@@ -37,10 +39,7 @@ public class StringMetaDataBo {
 
 
     public StringMetaDataBo(String agentId, long startTime, int stringId) {
-        if (agentId == null) {
-            throw new NullPointerException("agentId must not be null");
-        }
-        this.agentId = agentId;
+        this.agentId = Objects.requireNonNull(agentId, "agentId");
         this.stringId = stringId;
         this.startTime = startTime;
     }

@@ -36,7 +36,7 @@ public class AgentHistogramTest {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
     @Test
     public void testDeepCopy() throws Exception {
         AgentHistogram agentHistogram = new AgentHistogram(new Application("test", ServiceType.STAND_ALONE));
@@ -87,11 +87,11 @@ public class AgentHistogramTest {
     public String originalJson(AgentHistogram agentHistogram) throws IOException {
         //old implementation
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        sb.append('{');
         sb.append("\"name\":\"").append(agentHistogram.getId()).append("\",");
         String histogram = mapper.writeValueAsString(agentHistogram.getHistogram());
         sb.append("\"histogram\":").append(histogram);
-        sb.append("}");
+        sb.append('}');
         return sb.toString();
     }
 }

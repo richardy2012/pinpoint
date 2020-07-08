@@ -78,11 +78,11 @@ public class PinpointMBeanServerTest {
         mBeanServer.unregisterMBean(aTest);
     }
 
-    private interface ATestMBean {
+    public interface ATestMBean {
 
     }
 
-    private class ATest extends AbstractCollectorManager implements ATestMBean {
+    private static class ATest extends AbstractCollectorManager implements ATestMBean {
 
     }
 

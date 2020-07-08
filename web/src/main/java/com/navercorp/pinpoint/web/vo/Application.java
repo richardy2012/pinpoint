@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.navercorp.pinpoint.common.trace.ServiceType;
 import com.navercorp.pinpoint.web.view.ApplicationSerializer;
 
+import java.util.Objects;
+
 /**
  * 
  * @author netspider
@@ -31,19 +33,10 @@ import com.navercorp.pinpoint.web.view.ApplicationSerializer;
 public final class Application {
     private final String name;
     private final ServiceType serviceType;
-    // store separately to track undefined cases more easily
-    private final short code;
 
     public Application(String name, ServiceType serviceType) {
-        if (name == null) {
-            throw new NullPointerException("name must not be null. serviceType=" + serviceType);
-        }
-        if (serviceType == null) {
-            throw new NullPointerException("serviceType must not be null. name=" + name);
-        }
-        this.name = name;
-        this.serviceType = serviceType;
-        this.code = serviceType.getCode();
+        this.name = Objects.requireNonNull(name, "name");
+        this.serviceType = Objects.requireNonNull(serviceType, "serviceType");
     }
 
 
@@ -59,21 +52,15 @@ public final class Application {
         return serviceType.getCode();
     }
 
-    public short getCode() {
-        return code;
-    }
-
     public boolean equals(String thatName, ServiceType thatServiceType) {
         if (thatName == null) {
-            throw new NullPointerException("thatName must not be null");
+            throw new NullPointerException("thatName");
         }
         if (thatServiceType == null) {
-            throw new NullPointerException("thatServiceType must not be null");
+            throw new NullPointerException("thatServiceType");
         }
-        if (serviceType != thatServiceType) return false;
         if (!name.equals(thatName)) return false;
-
-        return true;
+        return serviceType.equals(thatServiceType);
     }
 
     @Override
@@ -83,10 +70,8 @@ public final class Application {
 
         Application that = (Application) o;
 
-        if (serviceType != that.serviceType) return false;
         if (!name.equals(that.name)) return false;
-
-        return true;
+        return serviceType.equals(that.serviceType);
     }
 
     @Override
@@ -98,6 +83,6 @@ public final class Application {
 
     @Override
     public String toString() {
-        return name + "(" + serviceType + ":" + code + ")";
+        return name + "(" + serviceType.getDesc() + ":" + serviceType.getCode() + ")";
     }
 }

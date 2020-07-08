@@ -16,10 +16,6 @@
 
 package com.navercorp.pinpoint.web.alarm.collector;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.navercorp.pinpoint.web.alarm.DataCollectorFactory.DataCollectorCategory;
 import com.navercorp.pinpoint.web.applicationmap.histogram.TimeHistogram;
 import com.navercorp.pinpoint.web.applicationmap.rawdata.LinkCallData;
@@ -30,17 +26,21 @@ import com.navercorp.pinpoint.web.dao.MapStatisticsCallerDao;
 import com.navercorp.pinpoint.web.vo.Application;
 import com.navercorp.pinpoint.web.vo.Range;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * @author minwoo.jung
  */
 public class MapStatisticsCallerDataCollector extends DataCollector {
 
-    private Application application;
-    private MapStatisticsCallerDao mapStatisticsCallerDao;
-    private long timeSlotEndTime;
-    private long slotInterval;
-    private Map<String, LinkCallData> calleStatMap = new HashMap<>();
-    private final AtomicBoolean init =new AtomicBoolean(false); // need to consider a trace condition when checkers start simultaneously.
+    private final Application application;
+    private final MapStatisticsCallerDao mapStatisticsCallerDao;
+    private final long timeSlotEndTime;
+    private final long slotInterval;
+    private final Map<String, LinkCallData> calleeStatMap = new HashMap<>();
+    private final AtomicBoolean init = new AtomicBoolean(false); // need to consider a trace condition when checkers start simultaneously.
 
     public MapStatisticsCallerDataCollector(DataCollectorCategory category, Application application, MapStatisticsCallerDao mapStatisticsCallerDao, long timeSlotEndTime, long slotInterval) {
         super(category);
@@ -56,13 +56,13 @@ public class MapStatisticsCallerDataCollector extends DataCollector {
             return;
         }
 
-        LinkDataMap callerDataMap = mapStatisticsCallerDao.selectCaller(application, new Range(timeSlotEndTime - slotInterval, timeSlotEndTime));
+        LinkDataMap callerDataMap = mapStatisticsCallerDao.selectCaller(application, Range.newRange(timeSlotEndTime - slotInterval, timeSlotEndTime));
 
         for (LinkData linkData : callerDataMap.getLinkDataList()) {
             LinkCallDataMap linkCallDataMap = linkData.getLinkCallDataMap();
 
             for (LinkCallData linkCallData : linkCallDataMap.getLinkDataList()) {
-                calleStatMap.put(linkCallData.getTarget(), linkCallData);
+                calleeStatMap.put(linkCallData.getTarget(), linkCallData);
             }
         }
 
@@ -70,11 +70,13 @@ public class MapStatisticsCallerDataCollector extends DataCollector {
     }
 
     public long getCount(String calleName, DataCategory dataCategory) {
-        LinkCallData linkCallData = calleStatMap.get(calleName);
-        long count = 0;
+        final LinkCallData linkCallData = calleeStatMap.get(calleName);
+        if (linkCallData == null) {
+            return 0;
+        }
 
-        if (linkCallData != null) {
-            switch (dataCategory) {
+        long count = 0;
+        switch (dataCategory) {
             case SLOW_COUNT:
                 for (TimeHistogram timeHistogram : linkCallData.getTimeHistogram()) {
                     count += timeHistogram.getSlowCount();
@@ -91,23 +93,24 @@ public class MapStatisticsCallerDataCollector extends DataCollector {
                     count += timeHistogram.getTotalCount();
                 }
                 break;
-            default :
+            default:
                 throw new IllegalArgumentException("Can't count for " + dataCategory.toString());
-            }
-
-            return count;
         }
 
-        return 0;
+        return count;
+
+
     }
 
     public long getCountRate(String calleName, DataCategory dataCategory) {
-        LinkCallData linkCallData = calleStatMap.get(calleName);
+        final LinkCallData linkCallData = calleeStatMap.get(calleName);
+        if (linkCallData == null) {
+            return 0;
+        }
+
         long count = 0;
         long totalCount = 0;
-
-        if (linkCallData != null) {
-            switch (dataCategory) {
+        switch (dataCategory) {
             case SLOW_RATE:
                 for (TimeHistogram timeHistogram : linkCallData.getTimeHistogram()) {
                     count += timeHistogram.getSlowCount();
@@ -121,22 +124,12 @@ public class MapStatisticsCallerDataCollector extends DataCollector {
                     totalCount += timeHistogram.getTotalCount();
                 }
                 break;
-            default :
+            default:
                 throw new IllegalArgumentException("Can't calculate rate for " + dataCategory.toString());
-            }
-
-            return calculatePercent(count, totalCount);
         }
 
-        return 0;
-    }
+        return calculatePercent(count, totalCount);
 
-    private long calculatePercent(long count, long totalCount) {
-        if (totalCount == 0 || count == 0) {
-            return 0;
-        } else {
-            return (count * 100L) / totalCount;
-        }
     }
 
     public enum DataCategory {

@@ -24,8 +24,8 @@ import com.navercorp.pinpoint.web.vo.Application;
 import com.navercorp.pinpoint.web.vo.Range;
 import com.navercorp.pinpoint.web.vo.ResponseTime;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class ApplicationTimeHistogramTest {
     public void testViewModel() throws IOException {
 
         Application app = new Application("test", ServiceType.STAND_ALONE);
-        ApplicationTimeHistogramBuilder builder = new ApplicationTimeHistogramBuilder(app, new Range(0, 10*6000));
+        ApplicationTimeHistogramBuilder builder = new ApplicationTimeHistogramBuilder(app, Range.newRange(0, 10*6000));
         List<ResponseTime> responseHistogramList = createResponseTime(app);
         ApplicationTimeHistogram histogram = builder.build(responseHistogramList);
 
